@@ -1,0 +1,6 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# 忽略 .idea 文件夹
+.idea/
+

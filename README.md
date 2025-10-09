@@ -317,3 +317,1112 @@ P(B=b|A=a)表示：它是B=b的概率，前提是A=a已发生。
 ## 线性神经网络
 
 ### 3.1 线性回归
+
+ *回归* （regression）是能为一个或多个自变量与因变量之间关系建模的一类方法。 在自然科学和社会科学领域，回归经常用来表示输入和输出之间的关系。
+
+在机器学习领域中的大多数任务通常都与 *预测* （prediction）有关。 当我们想预测一个数值时，就会涉及到回归问题。 常见的例子包括：预测价格（房屋、股票等）、预测住院时间（针对住院病人等）、 预测需求（零售销量等）。 但不是所有的*预测*都是回归问题。 在后面的章节中，我们将介绍分类问题。分类问题的目标是预测数据属于一组类别中的哪一个。
+
+#### 3.1.1 线性回归的基本元素
+
+*线性回归* （linear regression）可以追溯到19世纪初， 它在回归的各种标准工具中最简单而且最流行。 线性回归基于几个简单的假设： 首先，假设自变量x和因变量y之间的关系是线性的， 即y可以表示为x中元素的加权和，这里通常允许包含观测值的一些噪声； 其次，我们假设任何噪声都比较正常，如噪声遵循正态分布。
+
+为了解释 *线性回归* ，我们举一个实际的例子： 我们希望根据房屋的面积（平方英尺）和房龄（年）来估算房屋价格（美元）。 为了开发一个能预测房价的模型，我们需要收集一个真实的数据集。 这个数据集包括了房屋的销售价格、面积和房龄。 在机器学习的术语中，该数据集称为 *训练数据集* （training data set） 或 *训练集* （training set）。 每行数据（比如一次房屋交易相对应的数据）称为 *样本* （sample）， 也可以称为 *数据点* （data point）或 *数据样本* （data instance）。 我们把试图预测的目标（比如预测房屋价格）称为 *标签* （label）或 *目标* （target）。 预测所依据的自变量（面积和房龄）称为 *特征* （feature）或 *协变量* （covariate）。
+
+##### 3.1.1.1 线性模型
+
+线性假设是指目标（房屋价格）可以表示为特征（面积和房龄）的加权和，如下面的式子：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow data-mjx-texclass="ORD">
+    <mi data-mjx-auto-op="false">price</mi>
+  </mrow>
+  <mo>=</mo>
+  <msub>
+    <mi>w</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">area</mi>
+      </mrow>
+    </mrow>
+  </msub>
+  <mo>⋅</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi data-mjx-auto-op="false">area</mi>
+  </mrow>
+  <mo>+</mo>
+  <msub>
+    <mi>w</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-auto-op="false">age</mi>
+      </mrow>
+    </mrow>
+  </msub>
+  <mo>⋅</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi data-mjx-auto-op="false">age</mi>
+  </mrow>
+  <mo>+</mo>
+  <mi>b</mi>
+  <mo>.</mo>
+</math>
+
+中的W age和 W area称为 *权重* （weight），权重决定了每个特征对我们预测值的影响。 称为 *偏置* （bias）、 *偏移量* （offset）或 *截距* （intercept）。 偏置是指当所有特征都取值为0时，预测值应该为多少。 即使现实中不会有任何房子的面积是0或房龄正好是0年，我们仍然需要偏置项。 如果没有偏置项，我们模型的表达能力将受到限制。 严格来说， [(3.1.1)](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#equation-eq-price-area)是输入特征的一个  *仿射变换* （affine transformation）。 仿射变换的特点是通过加权和对特征进行 *线性变换* （linear transformation）， 并通过偏置项来进行 *平移* （translation）。
+
+给定一个数据集，我们的目标是寻找模型的权重和偏置， 使得根据模型做出的预测大体符合数据里的真实价格。 输出的预测值由输入特征通过*线性模型*的仿射变换决定，仿射变换由所选权重和偏置确定。
+
+而在机器学习领域，我们通常使用的是高维数据集，建模时采用线性代数表示法会比较方便。
+
+当我们的输入包含个特征时，我们将预测结果 （通常使用“尖角”符号表示的估计值）表示为：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow data-mjx-texclass="ORD">
+    <mover>
+      <mi>y</mi>
+      <mo stretchy="false">^</mo>
+    </mover>
+  </mrow>
+  <mo>=</mo>
+  <msub>
+    <mi>w</mi>
+    <mn>1</mn>
+  </msub>
+  <msub>
+    <mi>x</mi>
+    <mn>1</mn>
+  </msub>
+  <mo>+</mo>
+  <mo>.</mo>
+  <mo>.</mo>
+  <mo>.</mo>
+  <mo>+</mo>
+  <msub>
+    <mi>w</mi>
+    <mi>d</mi>
+  </msub>
+  <msub>
+    <mi>x</mi>
+    <mi>d</mi>
+  </msub>
+  <mo>+</mo>
+  <mi>b</mi>
+  <mo>.</mo>
+</math>
+
+将所有特征放到向量中， 并将所有权重放到向量中， 我们可以用点积形式来简洁地表达模型：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow data-mjx-texclass="ORD">
+    <mover>
+      <mi>y</mi>
+      <mo stretchy="false">^</mo>
+    </mover>
+  </mrow>
+  <mo>=</mo>
+  <msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">w</mi>
+    </mrow>
+    <mi mathvariant="normal">⊤</mi>
+  </msup>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">x</mi>
+  </mrow>
+  <mo>+</mo>
+  <mi>b</mi>
+  <mo>.</mo>
+</math>
+
+在 [(3.1.3)](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#equation-eq-linreg-y)中， 向量对应于单个数据样本的特征。 用符号表示的矩阵 可以很方便地引用我们整个数据集的个样本。 其中，的每一行是一个样本，每一列是一种特征。
+
+对于特征集合，预测值 可以通过矩阵-向量乘法表示为：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow data-mjx-texclass="ORD">
+    <mrow data-mjx-texclass="ORD">
+      <mover>
+        <mrow data-mjx-texclass="ORD">
+          <mi mathvariant="bold">y</mi>
+        </mrow>
+        <mo stretchy="false">^</mo>
+      </mover>
+    </mrow>
+  </mrow>
+  <mo>=</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">X</mi>
+  </mrow>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>+</mo>
+  <mi>b</mi>
+</math>
+
+这个过程中的求和将使用广播机制 （广播机制在 [2.1.3节](https://zh.d2l.ai/chapter_preliminaries/ndarray.html#subsec-broadcasting)中有详细介绍）。 给定训练数据特征和对应的已知标签， 线性回归的目标是找到一组权重向量和偏置： 当给定从的同分布中取样的新样本特征时， 这组权重向量和偏置能够使得新样本预测标签的误差尽可能小。
+
+虽然我们相信给定预测的最佳模型会是线性的， 但我们很难找到一个有个样本的真实数据集，其中对于所有的，完全等于。 无论我们使用什么手段来观察特征和标签， 都可能会出现少量的观测误差。 因此，即使确信特征与标签的潜在关系是线性的， 我们也会加入一个噪声项来考虑观测误差带来的影响。
+
+在开始寻找最好的 *模型参数* （model parameters）w和b之前， 我们还需要两个东西： （1）一种模型质量的度量方式； （2）一种能够更新模型以提高模型预测质量的方法。
+
+##### 3.1.1.2 损失函数
+
+在我们开始考虑如何用模型 *拟合* （fit）数据之前，我们需要确定一个拟合程度的度量。  *损失函数* （loss function）能够量化目标的*实际*值与*预测*值之间的差距。 通常我们会选择非负数作为损失，且数值越小表示损失越小，完美预测时的损失为0。 回归问题中最常用的损失函数是平方误差函数。 当样本的预测值为，其相应的真实标签为时， 平方误差可以定义为以下公式：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msup>
+    <mi>l</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mo stretchy="false">(</mo>
+      <mi>i</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </msup>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>,</mo>
+  <mi>b</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mfrac>
+    <mn>1</mn>
+    <mn>2</mn>
+  </mfrac>
+  <msup>
+    <mrow data-mjx-texclass="INNER">
+      <mo data-mjx-texclass="OPEN">(</mo>
+      <msup>
+        <mrow data-mjx-texclass="ORD">
+          <mover>
+            <mi>y</mi>
+            <mo stretchy="false">^</mo>
+          </mover>
+        </mrow>
+        <mrow data-mjx-texclass="ORD">
+          <mo stretchy="false">(</mo>
+          <mi>i</mi>
+          <mo stretchy="false">)</mo>
+        </mrow>
+      </msup>
+      <mo>−</mo>
+      <msup>
+        <mi>y</mi>
+        <mrow data-mjx-texclass="ORD">
+          <mo stretchy="false">(</mo>
+          <mi>i</mi>
+          <mo stretchy="false">)</mo>
+        </mrow>
+      </msup>
+      <mo data-mjx-texclass="CLOSE">)</mo>
+    </mrow>
+    <mn>2</mn>
+  </msup>
+  <mo>.</mo>
+</math>
+
+常数不会带来本质的差别，但这样在形式上稍微简单一些 （因为当我们对损失函数求导后常数系数为1）。 由于训练数据集并不受我们控制，所以经验误差只是关于模型参数的函数。
+
+由于平方误差函数中的二次方项， 估计值和观测值之间较大的差异将导致更大的损失。 为了度量模型在整个数据集上的质量，我们需计算在训练集个样本上的损失均值（也等价于求和）。
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>L</mi>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>,</mo>
+  <mi>b</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mfrac>
+    <mn>1</mn>
+    <mi>n</mi>
+  </mfrac>
+  <munderover>
+    <mo data-mjx-texclass="OP">∑</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mi>n</mi>
+  </munderover>
+  <msup>
+    <mi>l</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mo stretchy="false">(</mo>
+      <mi>i</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </msup>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>,</mo>
+  <mi>b</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mfrac>
+    <mn>1</mn>
+    <mi>n</mi>
+  </mfrac>
+  <munderover>
+    <mo data-mjx-texclass="OP">∑</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mi>n</mi>
+  </munderover>
+  <mfrac>
+    <mn>1</mn>
+    <mn>2</mn>
+  </mfrac>
+  <msup>
+    <mrow data-mjx-texclass="INNER">
+      <mo data-mjx-texclass="OPEN">(</mo>
+      <msup>
+        <mrow data-mjx-texclass="ORD">
+          <mi mathvariant="bold">w</mi>
+        </mrow>
+        <mi mathvariant="normal">⊤</mi>
+      </msup>
+      <msup>
+        <mrow data-mjx-texclass="ORD">
+          <mi mathvariant="bold">x</mi>
+        </mrow>
+        <mrow data-mjx-texclass="ORD">
+          <mo stretchy="false">(</mo>
+          <mi>i</mi>
+          <mo stretchy="false">)</mo>
+        </mrow>
+      </msup>
+      <mo>+</mo>
+      <mi>b</mi>
+      <mo>−</mo>
+      <msup>
+        <mi>y</mi>
+        <mrow data-mjx-texclass="ORD">
+          <mo stretchy="false">(</mo>
+          <mi>i</mi>
+          <mo stretchy="false">)</mo>
+        </mrow>
+      </msup>
+      <mo data-mjx-texclass="CLOSE">)</mo>
+    </mrow>
+    <mn>2</mn>
+  </msup>
+  <mo>.</mo>
+</math>
+
+在训练模型时，我们希望寻找一组参数（）， 这组参数能最小化在所有训练样本上的总损失。如下式：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">w</mi>
+    </mrow>
+    <mo>∗</mo>
+  </msup>
+  <mo>,</mo>
+  <msup>
+    <mi>b</mi>
+    <mo>∗</mo>
+  </msup>
+  <mo>=</mo>
+  <munder>
+    <mi>argmin</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mrow data-mjx-texclass="ORD">
+        <mi mathvariant="bold">w</mi>
+      </mrow>
+      <mo>,</mo>
+      <mi>b</mi>
+    </mrow>
+  </munder>
+  <mtext> </mtext>
+  <mi>L</mi>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>,</mo>
+  <mi>b</mi>
+  <mo stretchy="false">)</mo>
+  <mo>.</mo>
+</math>
+
+##### 3.1.1.3 解析解
+
+线性回归刚好是一个很简单的优化问题。 与我们将在本书中所讲到的其他大部分模型不同，线性回归的解可以用一个公式简单地表达出来， 这类解叫作解析解（analytical solution）。 首先，我们将偏置合并到参数中，合并方法是在包含所有参数的矩阵中附加一列。 我们的预测问题是最小化。 这在损失平面上只有一个临界点，这个临界点对应于整个区域的损失极小点。 将损失关于的导数设为0，得到解析解：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">w</mi>
+    </mrow>
+    <mo>∗</mo>
+  </msup>
+  <mo>=</mo>
+  <mo stretchy="false">(</mo>
+  <msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">X</mi>
+    </mrow>
+    <mi mathvariant="normal">⊤</mi>
+  </msup>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">X</mi>
+  </mrow>
+  <msup>
+    <mo stretchy="false">)</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mo>−</mo>
+      <mn>1</mn>
+    </mrow>
+  </msup>
+  <msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">X</mi>
+    </mrow>
+    <mi mathvariant="normal">⊤</mi>
+  </msup>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">y</mi>
+  </mrow>
+  <mo>.</mo>
+</math>
+
+像线性回归这样的简单问题存在解析解，但并不是所有的问题都存在解析解。 解析解可以进行很好的数学分析，但解析解对问题的限制很严格，导致它无法广泛应用在深度学习里。
+
+##### 3.1.1.4 随机梯度下降
+
+即使在我们无法得到解析解的情况下，我们仍然可以有效地训练模型。 在许多任务上，那些难以优化的模型效果要更好。 因此，弄清楚如何训练这些难以优化的模型是非常重要的。
+
+本书中我们用到一种名为 *梯度下降* （gradient descent）的方法， 这种方法几乎可以优化所有深度学习模型。 它通过不断地在损失函数递减的方向上更新参数来降低误差。
+
+梯度下降最简单的用法是计算损失函数（数据集中所有样本的损失均值） 关于模型参数的导数（在这里也可以称为梯度）。 但实际中的执行可能会非常慢：因为在每一次更新参数之前，我们必须遍历整个数据集。 因此，我们通常会在每次需要计算更新的时候随机抽取一小批样本， 这种变体叫做 *小批量随机梯度下降* （minibatch stochastic gradient descent）。
+
+在每次迭代中，我们首先随机抽样一个小批量， 它是由固定数量的训练样本组成的。 然后，我们计算小批量的平均损失关于模型参数的导数（也可以称为梯度）。 最后，我们将梯度乘以一个预先确定的正数，并从当前参数的值中减掉。
+
+我们用下面的数学公式来表示这一更新过程（表示偏导数）：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>,</mo>
+  <mi>b</mi>
+  <mo stretchy="false">)</mo>
+  <mo stretchy="false">←</mo>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>,</mo>
+  <mi>b</mi>
+  <mo stretchy="false">)</mo>
+  <mo>−</mo>
+  <mfrac>
+    <mi>η</mi>
+    <mrow>
+      <mo stretchy="false">|</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+      </mrow>
+      <mo stretchy="false">|</mo>
+    </mrow>
+  </mfrac>
+  <munder>
+    <mo data-mjx-texclass="OP">∑</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>∈</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+      </mrow>
+    </mrow>
+  </munder>
+  <msub>
+    <mi>∂</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mo stretchy="false">(</mo>
+      <mrow data-mjx-texclass="ORD">
+        <mi mathvariant="bold">w</mi>
+      </mrow>
+      <mo>,</mo>
+      <mi>b</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </msub>
+  <msup>
+    <mi>l</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mo stretchy="false">(</mo>
+      <mi>i</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </msup>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>,</mo>
+  <mi>b</mi>
+  <mo stretchy="false">)</mo>
+  <mo>.</mo>
+</math>
+
+总结一下，算法的步骤如下： （1）初始化模型参数的值，如随机初始化； （2）从数据集中随机抽取小批量样本且在负梯度的方向上更新参数，并不断迭代这一步骤。 对于平方损失和仿射变换，我们可以明确地写成如下形式:
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mtable displaystyle="true" columnalign="right" columnspacing="0em" rowspacing="3pt">
+    <mtr>
+      <mtd>
+        <mtable displaystyle="true" columnalign="right left" columnspacing="0em" rowspacing="3pt">
+          <mtr>
+            <mtd>
+              <mrow data-mjx-texclass="ORD">
+                <mi mathvariant="bold">w</mi>
+              </mrow>
+            </mtd>
+            <mtd>
+              <mi></mi>
+              <mo stretchy="false">←</mo>
+              <mrow data-mjx-texclass="ORD">
+                <mi mathvariant="bold">w</mi>
+              </mrow>
+              <mo>−</mo>
+              <mfrac>
+                <mi>η</mi>
+                <mrow>
+                  <mo stretchy="false">|</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                  <mo stretchy="false">|</mo>
+                </mrow>
+              </mfrac>
+              <munder>
+                <mo data-mjx-texclass="OP">∑</mo>
+                <mrow data-mjx-texclass="ORD">
+                  <mi>i</mi>
+                  <mo>∈</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                </mrow>
+              </munder>
+              <msub>
+                <mi>∂</mi>
+                <mrow data-mjx-texclass="ORD">
+                  <mrow data-mjx-texclass="ORD">
+                    <mi mathvariant="bold">w</mi>
+                  </mrow>
+                </mrow>
+              </msub>
+              <msup>
+                <mi>l</mi>
+                <mrow data-mjx-texclass="ORD">
+                  <mo stretchy="false">(</mo>
+                  <mi>i</mi>
+                  <mo stretchy="false">)</mo>
+                </mrow>
+              </msup>
+              <mo stretchy="false">(</mo>
+              <mrow data-mjx-texclass="ORD">
+                <mi mathvariant="bold">w</mi>
+              </mrow>
+              <mo>,</mo>
+              <mi>b</mi>
+              <mo stretchy="false">)</mo>
+              <mo>=</mo>
+              <mrow data-mjx-texclass="ORD">
+                <mi mathvariant="bold">w</mi>
+              </mrow>
+              <mo>−</mo>
+              <mfrac>
+                <mi>η</mi>
+                <mrow>
+                  <mo stretchy="false">|</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                  <mo stretchy="false">|</mo>
+                </mrow>
+              </mfrac>
+              <munder>
+                <mo data-mjx-texclass="OP">∑</mo>
+                <mrow data-mjx-texclass="ORD">
+                  <mi>i</mi>
+                  <mo>∈</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                </mrow>
+              </munder>
+              <msup>
+                <mrow data-mjx-texclass="ORD">
+                  <mi mathvariant="bold">x</mi>
+                </mrow>
+                <mrow data-mjx-texclass="ORD">
+                  <mo stretchy="false">(</mo>
+                  <mi>i</mi>
+                  <mo stretchy="false">)</mo>
+                </mrow>
+              </msup>
+              <mrow data-mjx-texclass="INNER">
+                <mo data-mjx-texclass="OPEN">(</mo>
+                <msup>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi mathvariant="bold">w</mi>
+                  </mrow>
+                  <mi mathvariant="normal">⊤</mi>
+                </msup>
+                <msup>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi mathvariant="bold">x</mi>
+                  </mrow>
+                  <mrow data-mjx-texclass="ORD">
+                    <mo stretchy="false">(</mo>
+                    <mi>i</mi>
+                    <mo stretchy="false">)</mo>
+                  </mrow>
+                </msup>
+                <mo>+</mo>
+                <mi>b</mi>
+                <mo>−</mo>
+                <msup>
+                  <mi>y</mi>
+                  <mrow data-mjx-texclass="ORD">
+                    <mo stretchy="false">(</mo>
+                    <mi>i</mi>
+                    <mo stretchy="false">)</mo>
+                  </mrow>
+                </msup>
+                <mo data-mjx-texclass="CLOSE">)</mo>
+              </mrow>
+              <mo>,</mo>
+            </mtd>
+          </mtr>
+          <mtr>
+            <mtd>
+              <mi>b</mi>
+            </mtd>
+            <mtd>
+              <mi></mi>
+              <mo stretchy="false">←</mo>
+              <mi>b</mi>
+              <mo>−</mo>
+              <mfrac>
+                <mi>η</mi>
+                <mrow>
+                  <mo stretchy="false">|</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                  <mo stretchy="false">|</mo>
+                </mrow>
+              </mfrac>
+              <munder>
+                <mo data-mjx-texclass="OP">∑</mo>
+                <mrow data-mjx-texclass="ORD">
+                  <mi>i</mi>
+                  <mo>∈</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                </mrow>
+              </munder>
+              <msub>
+                <mi>∂</mi>
+                <mi>b</mi>
+              </msub>
+              <msup>
+                <mi>l</mi>
+                <mrow data-mjx-texclass="ORD">
+                  <mo stretchy="false">(</mo>
+                  <mi>i</mi>
+                  <mo stretchy="false">)</mo>
+                </mrow>
+              </msup>
+              <mo stretchy="false">(</mo>
+              <mrow data-mjx-texclass="ORD">
+                <mi mathvariant="bold">w</mi>
+              </mrow>
+              <mo>,</mo>
+              <mi>b</mi>
+              <mo stretchy="false">)</mo>
+              <mo>=</mo>
+              <mi>b</mi>
+              <mo>−</mo>
+              <mfrac>
+                <mi>η</mi>
+                <mrow>
+                  <mo stretchy="false">|</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                  <mo stretchy="false">|</mo>
+                </mrow>
+              </mfrac>
+              <munder>
+                <mo data-mjx-texclass="OP">∑</mo>
+                <mrow data-mjx-texclass="ORD">
+                  <mi>i</mi>
+                  <mo>∈</mo>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi data-mjx-variant="-tex-calligraphic" mathvariant="script">B</mi>
+                  </mrow>
+                </mrow>
+              </munder>
+              <mrow data-mjx-texclass="INNER">
+                <mo data-mjx-texclass="OPEN">(</mo>
+                <msup>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi mathvariant="bold">w</mi>
+                  </mrow>
+                  <mi mathvariant="normal">⊤</mi>
+                </msup>
+                <msup>
+                  <mrow data-mjx-texclass="ORD">
+                    <mi mathvariant="bold">x</mi>
+                  </mrow>
+                  <mrow data-mjx-texclass="ORD">
+                    <mo stretchy="false">(</mo>
+                    <mi>i</mi>
+                    <mo stretchy="false">)</mo>
+                  </mrow>
+                </msup>
+                <mo>+</mo>
+                <mi>b</mi>
+                <mo>−</mo>
+                <msup>
+                  <mi>y</mi>
+                  <mrow data-mjx-texclass="ORD">
+                    <mo stretchy="false">(</mo>
+                    <mi>i</mi>
+                    <mo stretchy="false">)</mo>
+                  </mrow>
+                </msup>
+                <mo data-mjx-texclass="CLOSE">)</mo>
+              </mrow>
+              <mo>.</mo>
+            </mtd>
+          </mtr>
+        </mtable>
+      </mtd>
+    </mtr>
+  </mtable>
+</math>
+
+公式 [(3.1.10)](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#equation-eq-linreg-batch-update)中的和都是向量。 在这里，更优雅的向量表示法比系数表示法（如）更具可读性。 表示每个小批量中的样本数，这也称为 *批量大小* （batch size）。 表示 *学习率* （learning rate）。 批量大小和学习率的值通常是手动预先指定，而不是通过模型训练得到的。 这些可以调整但不在训练过程中更新的参数称为 *超参数* （hyperparameter）。  *调参* （hyperparameter tuning）是选择超参数的过程。 超参数通常是我们根据训练迭代结果来调整的， 而训练迭代结果是在独立的 *验证数据集* （validation dataset）上评估得到的。
+
+在训练了预先确定的若干迭代次数后（或者直到满足某些其他停止条件后）， 我们记录下模型参数的估计值，表示为。 但是，即使我们的函数确实是线性的且无噪声，这些估计值也不会使损失函数真正地达到最小值。 因为算法会使得损失向最小值缓慢收敛，但却不能在有限的步数内非常精确地达到最小值。
+
+线性回归恰好是一个在整个域中只有一个最小值的学习问题。 但是对像深度神经网络这样复杂的模型来说，损失平面上通常包含多个最小值。 深度学习实践者很少会去花费大力气寻找这样一组参数，使得在*训练集*上的损失达到最小。 事实上，更难做到的是找到一组参数，这组参数能够在我们从未见过的数据上实现较低的损失， 这一挑战被称为 *泛化* （generalization）。
+
+##### 3.1.1.5 用模型进行预测
+
+给定“已学习”的线性回归模型， 现在我们可以通过房屋面积和房龄来估计一个（未包含在训练数据中的）新房屋价格。 给定特征估计目标的过程通常称为 *预测* （prediction）或 *推断* （inference）。
+
+本书将尝试坚持使用*预测*这个词。 虽然*推断*这个词已经成为深度学习的标准术语，但其实*推断*这个词有些用词不当。 在统计学中，*推断*更多地表示基于数据集估计参数。 当深度学习从业者与统计学家交谈时，术语的误用经常导致一些误解。
+
+#### 3.1.2 矢量化加速
+
+在训练我们的模型时，我们经常希望能够同时处理整个小批量的样本。 为了实现这一点，需要我们对计算进行矢量化， 从而利用线性代数库，而不是在Python中编写开销高昂的for循环。为了说明矢量化为什么如此重要，我们考虑对向量相加的两种方法。 我们实例化两个全为1的10000维向量。 在一种方法中，我们将使用Python的for循环遍历向量； 在另一种方法中，我们将依赖对 `+`的调用。
+
+由于在本书中我们将频繁地进行运行时间的基准测试，所以我们定义一个计时器，现在我们可以对工作负载进行基准测试。首先，我们使用for循环，每次执行一位的加法。或者，我们使用重载的 `+`运算符来计算按元素的和。结果很明显，第二种方法比第一种方法快得多。 矢量化代码通常会带来数量级的加速。 另外，我们将更多的数学运算放到库中，而无须自己编写那么多的计算，从而减少了出错的可能性。
+
+#### 3.1.3 正态分布与平方损失
+
+接下来，我们通过对噪声分布的假设来解读平方损失目标函数。
+
+正态分布和线性回归之间的关系很密切。 正态分布（normal distribution），也称为 *高斯分布* （Gaussian distribution）， 最早由德国数学家高斯（Gauss）应用于天文学研究。 简单的说，若随机变量具有均值和方差（标准差），其正态分布概率密度函数如下：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>p</mi>
+  <mo stretchy="false">(</mo>
+  <mi>x</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mfrac>
+    <mn>1</mn>
+    <msqrt>
+      <mn>2</mn>
+      <mi>π</mi>
+      <msup>
+        <mi>σ</mi>
+        <mn>2</mn>
+      </msup>
+    </msqrt>
+  </mfrac>
+  <mi>exp</mi>
+  <mo data-mjx-texclass="NONE">⁡</mo>
+  <mrow data-mjx-texclass="INNER">
+    <mo data-mjx-texclass="OPEN">(</mo>
+    <mo>−</mo>
+    <mfrac>
+      <mn>1</mn>
+      <mrow>
+        <mn>2</mn>
+        <msup>
+          <mi>σ</mi>
+          <mn>2</mn>
+        </msup>
+      </mrow>
+    </mfrac>
+    <mo stretchy="false">(</mo>
+    <mi>x</mi>
+    <mo>−</mo>
+    <mi>μ</mi>
+    <msup>
+      <mo stretchy="false">)</mo>
+      <mn>2</mn>
+    </msup>
+    <mo data-mjx-texclass="CLOSE">)</mo>
+  </mrow>
+  <mo>.</mo>
+</math>
+
+均方误差损失函数（简称均方损失）可以用于线性回归的一个原因是： 我们假设了观测中包含噪声，其中噪声服从正态分布。 噪声正态分布如下式:
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>y</mi>
+  <mo>=</mo>
+  <msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">w</mi>
+    </mrow>
+    <mi mathvariant="normal">⊤</mi>
+  </msup>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">x</mi>
+  </mrow>
+  <mo>+</mo>
+  <mi>b</mi>
+  <mo>+</mo>
+  <mi>ϵ</mi>
+  <mo>,</mo>
+</math>
+
+因此，我们现在可以写出通过给定x的观测到特定y的 *似然* （likelihood）：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>P</mi>
+  <mo stretchy="false">(</mo>
+  <mi>y</mi>
+  <mo>∣</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">x</mi>
+  </mrow>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mfrac>
+    <mn>1</mn>
+    <msqrt>
+      <mn>2</mn>
+      <mi>π</mi>
+      <msup>
+        <mi>σ</mi>
+        <mn>2</mn>
+      </msup>
+    </msqrt>
+  </mfrac>
+  <mi>exp</mi>
+  <mo data-mjx-texclass="NONE">⁡</mo>
+  <mrow data-mjx-texclass="INNER">
+    <mo data-mjx-texclass="OPEN">(</mo>
+    <mo>−</mo>
+    <mfrac>
+      <mn>1</mn>
+      <mrow>
+        <mn>2</mn>
+        <msup>
+          <mi>σ</mi>
+          <mn>2</mn>
+        </msup>
+      </mrow>
+    </mfrac>
+    <mo stretchy="false">(</mo>
+    <mi>y</mi>
+    <mo>−</mo>
+    <msup>
+      <mrow data-mjx-texclass="ORD">
+        <mi mathvariant="bold">w</mi>
+      </mrow>
+      <mi mathvariant="normal">⊤</mi>
+    </msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">x</mi>
+    </mrow>
+    <mo>−</mo>
+    <mi>b</mi>
+    <msup>
+      <mo stretchy="false">)</mo>
+      <mn>2</mn>
+    </msup>
+    <mo data-mjx-texclass="CLOSE">)</mo>
+  </mrow>
+  <mo>.</mo>
+</math>
+
+现在，根据极大似然估计法，参数和的最优值是使整个数据集的*似然*最大的值：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>P</mi>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">y</mi>
+  </mrow>
+  <mo>∣</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">X</mi>
+  </mrow>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <munderover>
+    <mo data-mjx-texclass="OP">∏</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mi>n</mi>
+    </mrow>
+  </munderover>
+  <mi>p</mi>
+  <mo stretchy="false">(</mo>
+  <msup>
+    <mi>y</mi>
+    <mrow data-mjx-texclass="ORD">
+      <mo stretchy="false">(</mo>
+      <mi>i</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </msup>
+  <mrow data-mjx-texclass="ORD">
+    <mo stretchy="false">|</mo>
+  </mrow>
+  <msup>
+    <mrow data-mjx-texclass="ORD">
+      <mi mathvariant="bold">x</mi>
+    </mrow>
+    <mrow data-mjx-texclass="ORD">
+      <mo stretchy="false">(</mo>
+      <mi>i</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </msup>
+  <mo stretchy="false">)</mo>
+  <mo>.</mo>
+</math>
+
+根据极大似然估计法选择的估计量称为 *极大似然估计量* 。 虽然使许多指数函数的乘积最大化看起来很困难， 但是我们可以在不改变目标的前提下，通过最大化似然对数来简化。 由于历史原因，优化通常是说最小化而不是最大化。 我们可以改为*最小化负对数似然-logP(y|X)*。 由此可以得到的数学公式是：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mo>−</mo>
+  <mi>log</mi>
+  <mo data-mjx-texclass="NONE">⁡</mo>
+  <mi>P</mi>
+  <mo stretchy="false">(</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">y</mi>
+  </mrow>
+  <mo>∣</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">X</mi>
+  </mrow>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <munderover>
+    <mo data-mjx-texclass="OP">∑</mo>
+    <mrow data-mjx-texclass="ORD">
+      <mi>i</mi>
+      <mo>=</mo>
+      <mn>1</mn>
+    </mrow>
+    <mi>n</mi>
+  </munderover>
+  <mfrac>
+    <mn>1</mn>
+    <mn>2</mn>
+  </mfrac>
+  <mi>log</mi>
+  <mo data-mjx-texclass="NONE">⁡</mo>
+  <mo stretchy="false">(</mo>
+  <mn>2</mn>
+  <mi>π</mi>
+  <msup>
+    <mi>σ</mi>
+    <mn>2</mn>
+  </msup>
+  <mo stretchy="false">)</mo>
+  <mo>+</mo>
+  <mfrac>
+    <mn>1</mn>
+    <mrow>
+      <mn>2</mn>
+      <msup>
+        <mi>σ</mi>
+        <mn>2</mn>
+      </msup>
+    </mrow>
+  </mfrac>
+  <msup>
+    <mrow data-mjx-texclass="INNER">
+      <mo data-mjx-texclass="OPEN">(</mo>
+      <msup>
+        <mi>y</mi>
+        <mrow data-mjx-texclass="ORD">
+          <mo stretchy="false">(</mo>
+          <mi>i</mi>
+          <mo stretchy="false">)</mo>
+        </mrow>
+      </msup>
+      <mo>−</mo>
+      <msup>
+        <mrow data-mjx-texclass="ORD">
+          <mi mathvariant="bold">w</mi>
+        </mrow>
+        <mi mathvariant="normal">⊤</mi>
+      </msup>
+      <msup>
+        <mrow data-mjx-texclass="ORD">
+          <mi mathvariant="bold">x</mi>
+        </mrow>
+        <mrow data-mjx-texclass="ORD">
+          <mo stretchy="false">(</mo>
+          <mi>i</mi>
+          <mo stretchy="false">)</mo>
+        </mrow>
+      </msup>
+      <mo>−</mo>
+      <mi>b</mi>
+      <mo data-mjx-texclass="CLOSE">)</mo>
+    </mrow>
+    <mn>2</mn>
+  </msup>
+  <mo>.</mo>
+</math>
+
+现在我们只需要假设是某个固定常数就可以忽略第一项， 因为第一项不依赖于w和b。 现在第二项除了常数外，其余部分和前面介绍的均方误差是一样的。 幸运的是，上面式子的解并不依赖于。 因此，在高斯噪声的假设下，最小化均方误差等价于对线性模型的极大似然估计。
+
+#### 3.1.4 从线性回归到深度网络
+
+到目前为止，我们只谈论了线性模型。 尽管神经网络涵盖了更多更为丰富的模型，我们依然可以用描述神经网络的方式来描述线性模型， 从而把线性模型看作一个神经网络。 首先，我们用“层”符号来重写这个模型。
+
+##### 3.1.4.1 神经网络图
+
+深度学习从业者喜欢绘制图表来可视化模型中正在发生的事情。 在 [图3.1.2](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#fig-single-neuron)中，我们将线性回归模型描述为一个神经网络。 需要注意的是，该图只显示连接模式，即只显示每个输入如何连接到输出，隐去了权重和偏置的值。
+
+在 [图3.1.2](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#fig-single-neuron)所示的神经网络中，输入为， 因此输入层中的 *输入数* （或称为 *特征维度* ，feature dimensionality）为。 网络的输出为，因此输出层中的*输出数*是1。 需要注意的是，输入值都是已经给定的，并且只有一个*计算*神经元。 由于模型重点在发生计算的地方，所以通常我们在计算层数时不考虑输入层。 也就是说， [图3.1.2](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#fig-single-neuron)中神经网络的*层数*为1。 我们可以将线性回归模型视为仅由单个人工神经元组成的神经网络，或称为单层神经网络。
+
+对于线性回归，每个输入都与每个输出（在本例中只有一个输出）相连， 我们将这种变换（ [图3.1.2](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#fig-single-neuron)中的输出层） 称为 *全连接层* （fully-connected layer）或称为 *稠密层* （dense layer）。 下一章将详细讨论由这些层组成的网络。
+
+##### 3.1.4.2 生物学
+
+线性回归发明的时间（1795年）早于计算神经科学，所以将线性回归描述为神经网络似乎不合适。 当控制学家、神经生物学家沃伦·麦库洛奇和沃尔特·皮茨开始开发人工神经元模型时， 他们为什么将线性模型作为一个起点呢？ 我们来看一张图片 [图3.1.3](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#fig-neuron)： 这是一张由 *树突* （dendrites，输入终端）、  *细胞核* （nucleus，CPU）组成的生物神经元图片。  *轴突* （axon，输出线）和 *轴突端子* （axon terminal，输出端子） 通过 *突触* （synapse）与其他神经元连接。
+
+树突中接收到来自其他神经元（或视网膜等环境传感器）的信息。 该信息通过*突触权重*来加权，以确定输入的影响（即，通过相乘来激活或抑制）。 来自多个源的加权输入以加权和的形式汇聚在细胞核中， 然后将这些信息发送到轴突中进一步处理，通常会通过进行一些非线性处理。 之后，它要么到达目的地（例如肌肉），要么通过树突进入另一个神经元。
+
+当然，许多这样的单元可以通过正确连接和正确的学习算法拼凑在一起， 从而产生的行为会比单独一个神经元所产生的行为更有趣、更复杂， 这种想法归功于我们对真实生物神经系统的研究。
+
+当今大多数深度学习的研究几乎没有直接从神经科学中获得灵感。 我们援引斯图尔特·罗素和彼得·诺维格在他们的经典人工智能教科书 *Artificial Intelligence:A Modern Approach* ([Russell and Norvig, 2016](https://zh.d2l.ai/chapter_references/zreferences.html#id141 "Russell, S. J., &amp; Norvig, P. (2016). Artificial intelligence: a modern approach. Malaysia; Pearson Education Limited,.")) 中所说的：虽然飞机可能受到鸟类的启发，但几个世纪以来，鸟类学并不是航空创新的主要驱动力。 同样地，如今在深度学习中的灵感同样或更多地来自数学、统计学和计算机科学。
+
+### 3.2 线性回归的从零开始实现
+
+在了解线性回归的关键思想之后，我们可以开始通过代码来动手实现线性回归了。 在这一节中，我们将从零开始实现整个方法， 包括数据流水线、模型、损失函数和小批量随机梯度下降优化器。 虽然现代的深度学习框架几乎可以自动化地进行所有这些工作，但从零开始实现可以确保我们真正知道自己在做什么。 同时，了解更细致的工作原理将方便我们自定义模型、自定义层或自定义损失函数。 在这一节中，我们将只使用张量和自动求导。 在之后的章节中，我们会充分利用深度学习框架的优势，介绍更简洁的实现方式。
+
+#### 3.2.1 生成数据集
+
+为了简单起见，我们将根据带有噪声的线性模型构造一个人造数据集。 我们的任务是使用这个有限样本的数据集来恢复这个模型的参数。 我们将使用低维数据，这样可以很容易地将其可视化。 在下面的代码中，我们生成一个包含1000个样本的数据集， 每个样本包含从标准正态分布中采样的2个特征。 我们的合成数据集是一个矩阵X∈R 1000×2。
+
+我们使用线性模型参数w=[2,-3,4]T、b=4.2 和噪声项μ生成数据集及其标签：
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">y</mi>
+  </mrow>
+  <mo>=</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">X</mi>
+  </mrow>
+  <mrow data-mjx-texclass="ORD">
+    <mi mathvariant="bold">w</mi>
+  </mrow>
+  <mo>+</mo>
+  <mi>b</mi>
+  <mo>+</mo>
+  <mrow data-mjx-texclass="ORD">
+    <mi>ϵ</mi>
+  </mrow>
+  <mo>.</mo>
+</math>
+
+μ可以视为模型预测和标签时的潜在观测误差。 在这里我们认为标准假设成立，即μ服从均值为0的正态分布。 为了简化问题，我们将标准差设为0.01。 下面的代码生成合成数据集。
+
+通过生成第二个特征 `features[:,1]`和 `labels`的散点图， 可以直观观察到两者之间的线性关系。
+
+#### 3.2.2 读取数据集
+
+回想一下，训练模型时要对数据集进行遍历，每次抽取一小批量样本，并使用它们来更新我们的模型。 由于这个过程是训练机器学习算法的基础，所以有必要定义一个函数， 该函数能打乱数据集中的样本并以小批量方式获取数据。
+
+在下面的代码中，我们定义一个 `data_iter`函数， 该函数接收批量大小、特征矩阵和标签向量作为输入，生成大小为 `batch_size`的小批量。 每个小批量包含一组特征和标签。
+
+通常，我们利用GPU并行运算的优势，处理合理大小的“小批量”。 每个样本都可以并行地进行模型计算，且每个样本损失函数的梯度也可以被并行计算。 GPU可以在处理几百个样本时，所花费的时间不比处理一个样本时多太多。
+
+我们直观感受一下小批量运算：读取第一个小批量数据样本并打印。 每个批量的特征维度显示批量大小和输入特征数。 同样的，批量的标签形状与 `batch_size`相等。
+
+当我们运行迭代时，我们会连续地获得不同的小批量，直至遍历完整个数据集。 上面实现的迭代对教学来说很好，但它的执行效率很低，可能会在实际问题上陷入麻烦。 例如，它要求我们将所有数据加载到内存中，并执行大量的随机内存访问。 在深度学习框架中实现的内置迭代器效率要高得多， 它可以处理存储在文件中的数据和数据流提供的数据。
+
+#### 3.2.3 初始化模型参数
+
+在我们开始用小批量随机梯度下降优化我们的模型参数之前， 我们需要先有一些参数。 在下面的代码中，我们通过从均值为0、标准差为0.01的正态分布中采样随机数来初始化权重， 并将偏置初始化为0。
+
+在初始化参数之后，我们的任务是更新这些参数，直到这些参数足够拟合我们的数据。 每次更新都需要计算损失函数关于模型参数的梯度。 有了这个梯度，我们就可以向减小损失的方向更新每个参数。 因为手动计算梯度很枯燥而且容易出错，所以没有人会手动计算梯度。 我们使用 [2.5节](https://zh.d2l.ai/chapter_preliminaries/autograd.html#sec-autograd)中引入的自动微分来计算梯度。
+
+#### 3.2.4 定义模型
+
+接下来，我们必须定义模型，将模型的输入和参数同模型的输出关联起来。 回想一下，要计算线性模型的输出， 我们只需计算输入特征X和模型权重w的矩阵-向量乘法后加上偏置b。 注意，上面的Xw是一个向量，而是b一个标量。 回想一下 [2.1.3节](https://zh.d2l.ai/chapter_preliminaries/ndarray.html#subsec-broadcasting)中描述的广播机制： 当我们用一个向量加一个标量时，标量会被加到向量的每个分量上。
+
+#### 3.2.5 定义损失函数
+
+因为需要计算损失函数的梯度，所以我们应该先定义损失函数。 这里我们使用 [3.1节](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#sec-linear-regression)中描述的平方损失函数。 在实现中，我们需要将真实值 `y`的形状转换为和预测值 `y_hat`的形状相同。
+
+#### 3.2.6 定义优化算法
+
+正如我们在 [3.1节](https://zh.d2l.ai/chapter_linear-networks/linear-regression.html#sec-linear-regression)中讨论的，线性回归有解析解。 尽管线性回归有解析解，但本书中的其他模型却没有。 这里我们介绍小批量随机梯度下降。
+
+在每一步中，使用从数据集中随机抽取的一个小批量，然后根据参数计算损失的梯度。 接下来，朝着减少损失的方向更新我们的参数。 下面的函数实现小批量随机梯度下降更新。 该函数接受模型参数集合、学习速率和批量大小作为输入。每 一步更新的大小由学习速率 `lr`决定。 因为我们计算的损失是一个批量样本的总和，所以我们用批量大小（`batch_size`） 来规范化步长，这样步长大小就不会取决于我们对批量大小的选择。
+
+#### 3.2.7 训练
+
+现在我们已经准备好了模型训练所有需要的要素，可以实现主要的训练过程部分了。 理解这段代码至关重要，因为从事深度学习后， 相同的训练过程几乎一遍又一遍地出现。 在每次迭代中，我们读取一小批量训练样本，并通过我们的模型来获得一组预测。 计算完损失后，我们开始反向传播，存储每个参数的梯度。 最后，我们调用优化算法 `sgd`来更新模型参数。
+
+概括一下，我们将执行以下循环：
+
+* 初始化参数
+* 重复以下训练，直到完成
+  * 计算梯度
+  * 更新参数
+
+在每个 *迭代周期* （epoch）中，我们使用 `data_iter`函数遍历整个数据集， 并将训练数据集中所有样本都使用一次（假设样本数能够被批量大小整除）。 这里的迭代周期个数 `num_epochs`和学习率 `lr`都是超参数，分别设为3和0.03。 设置超参数很棘手，需要通过反复试验进行调整。 我们现在忽略这些细节，以后会在 [11节](https://zh.d2l.ai/chapter_optimization/index.html#chap-optimization)中详细介绍。
+
+### 3.3 线性回归的简洁实现
+
+在过去的几年里，出于对深度学习强烈的兴趣， 许多公司、学者和业余爱好者开发了各种成熟的开源框架。 这些框架可以自动化基于梯度的学习算法中重复性的工作。 在 [3.2节](https://zh.d2l.ai/chapter_linear-networks/linear-regression-scratch.html#sec-linear-scratch)中，我们只运用了： （1）通过张量来进行数据存储和线性代数； （2）通过自动微分来计算梯度。 实际上，由于数据迭代器、损失函数、优化器和神经网络层很常用， 现代深度学习库也为我们实现了这些组件。
+
+本节将介绍如何通过使用深度学习框架来简洁地实现 [3.2节](https://zh.d2l.ai/chapter_linear-networks/linear-regression-scratch.html#sec-linear-scratch)中的线性回归模型。
+
+#### 3.3.1 生成数据集
+
+#### 3.3.2 读取数据集
+
+我们可以调用框架中现有的API来读取数据。 我们将 `features`和 `labels`作为API的参数传递，并通过数据迭代器指定 `batch_size`。 此外，布尔值 `is_train`表示是否希望数据迭代器对象在每个迭代周期内打乱数据。
